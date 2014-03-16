@@ -3,13 +3,35 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 #include "lib/iowkit.h"
+
+/*
+ * for temperatures over 0°C
+ */
+#define COEFF_A 7.5f
+#define COEFF_B 237.3f
+#define COEFF_C 6.1078f
+#define GAS_CONSTANT 8314.3f
+#define MOL_WEIGHT 18.016f
+#define C2K(c) (c+273.15f)
+
+/*
+ * absolute humidity in
+ * gram water per cubic meter air
+ */
+float calc_absolute_humidity(float h, float t) {
+	float sdd;
+
+	sdd = COEFF_C * powf(10, (COEFF_A * t) / (COEFF_B + t));
+	return 1000 * (MOL_WEIGHT / GAS_CONSTANT) * ((h * sdd) / C2K(t));
+}
 
 int main() {
 	IOWKIT56_SPECIAL_REPORT report;
 	IOWKIT_HANDLE iow;
 	ULONG numDevs;
-	float temperature, humidity;
+	float temperature, humidity, abshum;
 	uint16_t pid;
 	int tries = 10;
 
@@ -76,11 +98,13 @@ int main() {
          */
         humidity = ((report.Bytes[1] & 0x3f) << 8 | report.Bytes[2]) * (100.0 / 0x3fff);
         temperature = (report.Bytes[3] << 8 | (report.Bytes[4] & 0xfc)) * (165.0 / 0xfffc) - 40;
+	abshum = calc_absolute_humidity(humidity, temperature);
 #if 0
 	printf("temperature is:%f\n", temperature);
-	printf("humidity is:%f\n", humidity);
+	printf("rel humidity is:%f\n", humidity);
+	printf("abs humidity is:%f\n", abshum);
 #endif
-	printf("%f %f\n", temperature, humidity);
+	printf("%f %f %f\n", temperature, humidity, abshum);
 
 	/* switch back to normal mode */
         memset(&report, 0x00, IOWKIT56_SPECIAL_REPORT_SIZE);
