@@ -1,7 +1,9 @@
 IOWARRIOR-HYT271
 ======
 
-use iowarrior56 to interface a temperature&amp;humidity sensor HYT271 via I2C
+Use iowarrior56 to interface a temperature&amp;humidity sensor HYT271 via I2C.
+The code is based on David Wraggs work (http://david.wragg.org/blog/2013/01/rpi-humidity.html) and the calculation of the absolute humidity is based on the formula given on http://www.ib-rauch.de/bautens/formel/abs_luftfeucht.html
+
 
 ##provided static lib
 
